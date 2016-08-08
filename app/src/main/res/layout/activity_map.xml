@@ -29,7 +29,7 @@
     <com.mapbox.services.android.geocoder.ui.GeocoderAutoCompleteView
         android:id="@+id/query"
         android:singleLine="true"
-        android:layout_width="match_parent"
+        android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
