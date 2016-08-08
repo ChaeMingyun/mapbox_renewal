@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "49253484297",
+    "firebase_url": "https://qwerty-7992b.firebaseio.com",
+    "project_id": "qwerty-7992b",
+    "storage_bucket": "qwerty-7992b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49253484297:android:bda886d196d6ff4c",
+        "android_client_info": {
+          "package_name": "com.example.chaemingyun.qwerty"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "49253484297-lms4h6infktpi4s96doe0kdaql1pilnb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chaemingyun.qwerty",
+            "certificate_hash": "40068A6562211F81EBEC9CEBFED478CB75817F9C"
+          }
+        },
+        {
+          "client_id": "49253484297-e29btrauafmutlvln0ernmbh8ts3ed6u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqguAmN9n0nr7RRW0HmQdAskSrHwgJ9F4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "49253484297-e29btrauafmutlvln0ernmbh8ts3ed6u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

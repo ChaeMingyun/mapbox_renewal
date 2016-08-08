@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">qwerty</string>
+    <string name="access_token">pk.eyJ1IjoiY29hbHNyYnM3IiwiYSI6ImNpcmc1NTR2NTAwMWtnMW5yZWg0c3ZuM24ifQ.LZeDizCkf7HQvGwoQVIbxw</string>
+
+    <string name="signed_out">Signed Out</string>
+    <string name="firebase_status_fmt">Firebase User: %s</string>
+    <string name="google_status_fmt">Google User: %s</string>
+</resources>
