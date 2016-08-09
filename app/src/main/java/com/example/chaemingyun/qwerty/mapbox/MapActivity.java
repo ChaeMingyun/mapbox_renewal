@@ -39,6 +39,10 @@ import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.animation.TypeEvaluator;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class MapActivity extends AppCompatActivity {
     private MapView mapView;
@@ -66,6 +70,7 @@ public class MapActivity extends AppCompatActivity {
             public void onMapReady(MapboxMap mapboxMap) {
                 // Customize map with markers, polylines, etc.
                 map = mapboxMap;
+
                 mapboxMap.addMarker(new MarkerOptions()
                         .position(new LatLng(37.450637, 126.657261))
                         .title("인하대학교 IT공과대학")
@@ -75,6 +80,8 @@ public class MapActivity extends AppCompatActivity {
                         .position(new LatLng(37.45, 126.65)));
 
                 marker.getPosition();
+
+
 
                 mapboxMap.setOnMapClickListener(new MapboxMap.OnMapClickListener() {
                     @Override
