@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/add_mark"
+        android:title="add mark"
+        android:icon="@android:drawable/ic_input_get"/>
+
+    <item
+        android:id="@+id/logout"
+        android:title="logout"
+        android:icon="@android:drawable/ic_partial_secure"/>
+
+</menu>

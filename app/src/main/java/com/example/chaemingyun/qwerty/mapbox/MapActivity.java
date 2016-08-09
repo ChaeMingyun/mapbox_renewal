@@ -26,6 +26,7 @@ import com.mapbox.services.geocoding.v5.GeocodingCriteria;
 import com.mapbox.services.geocoding.v5.models.CarmenFeature;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -33,11 +34,14 @@ import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
+import android.view.MenuItem;
 import android.view.View;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.animation.TypeEvaluator;
+import android.widget.Toast;
 
 
 public class MapActivity extends AppCompatActivity {
@@ -46,6 +50,8 @@ public class MapActivity extends AppCompatActivity {
     FloatingActionButton floatingActionButton;
     LocationServices locationServices;
 
+    final LatLng FIRST_POSITION = new LatLng(37.45, 126.65);    //초기 마커의 위치
+    LatLng currentPosition = FIRST_POSITION;    //현재 마커의 위치
     private static final int PERMISSIONS_LOCATION = 0;
 
     @Override
@@ -66,6 +72,7 @@ public class MapActivity extends AppCompatActivity {
             public void onMapReady(MapboxMap mapboxMap) {
                 // Customize map with markers, polylines, etc.
                 map = mapboxMap;
+                //학교위치에 마커(test)
                 mapboxMap.addMarker(new MarkerOptions()
                         .position(new LatLng(37.450637, 126.657261))
                         .title("인하대학교 IT공과대학")
@@ -85,6 +92,8 @@ public class MapActivity extends AppCompatActivity {
                                 new LatLngEvaluator(), marker.getPosition(), point);
                         markerAnimator.setDuration(2000);
                         markerAnimator.start();
+
+                        currentPosition = point;
                     }
                 });
             }
@@ -228,4 +237,36 @@ public class MapActivity extends AppCompatActivity {
             return latLng;
         }
     }
+
+    public void onClick_menu(View v){
+        PopupMenu popup= new PopupMenu(MapActivity.this, v);
+        getMenuInflater().inflate(R.menu.minimenu, popup.getMenu());
+        popup.setOnMenuItemClickListener(listener);
+        popup.show();
+    }
+
+    PopupMenu.OnMenuItemClickListener listener= new PopupMenu.OnMenuItemClickListener() {
+
+        @Override
+        public boolean onMenuItemClick(MenuItem item) {
+            // TODO Auto-generated method stub
+            switch (item.getItemId()) {
+
+                case R.id.add_mark:
+                    Toast.makeText(MapActivity.this, "마커 추가", Toast.LENGTH_SHORT).show();
+
+                    map.addMarker(new MarkerOptions()
+                            .position(currentPosition)
+                            .title("test")
+                            .snippet("Made By 컴공 채민균 양민승 송원근"));
+
+                    break;
+
+                case R.id.logout:
+                    Toast.makeText(MapActivity.this, "로그아웃", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            return false;
+        }
+    };
 }
