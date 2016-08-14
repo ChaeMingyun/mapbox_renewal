@@ -5,8 +5,12 @@ package com.example.chaemingyun.qwerty.mapbox;
  */
 
 
+import com.example.chaemingyun.qwerty.AddMarkerDialog;
+import com.example.chaemingyun.qwerty.MainActivity;
+import com.example.chaemingyun.qwerty.MarkerInfo;
 import com.example.chaemingyun.qwerty.R;
 import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
@@ -26,13 +30,20 @@ import com.mapbox.services.geocoding.v5.GeocodingCriteria;
 import com.mapbox.services.geocoding.v5.models.CarmenFeature;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.view.MenuItem;
@@ -41,7 +52,13 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.animation.TypeEvaluator;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class MapActivity extends AppCompatActivity {
@@ -49,14 +66,57 @@ public class MapActivity extends AppCompatActivity {
     private MapboxMap map;
     FloatingActionButton floatingActionButton;
     LocationServices locationServices;
+    AddMarkerDialog addMarkerDialog; //dialog 객체
 
-    final LatLng FIRST_POSITION = new LatLng(37.45, 126.65);    //초기 마커의 위치
+    final LatLng FIRST_POSITION = new LatLng(37.45, 126.65);    //초기 이동 마커의 위치
     LatLng currentPosition = FIRST_POSITION;    //현재 마커의 위치
     private static final int PERMISSIONS_LOCATION = 0;
+    private boolean markerFlag = true;  //dialog의 취소가 눌렸는지를 알려준다.
+
+    final int OPEN_GELLERY = 100;   //갤러리 불러올 request 코드
+
+    Icon icon;  //마커에 넣을 임시 아이콘
+
+    ArrayList<MarkerInfo> markerArrayList;  //마커들을 저장할 리스트
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //dialog객체 생성 및 설정
+        addMarkerDialog = new AddMarkerDialog(MapActivity.this);
+        addMarkerDialog.setTitle("발자취 남기기");
+
+        //dialog가 사라졌을때 발생
+        addMarkerDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+
+                //현재 이동마커의 위치에 입력받은 내용들로 마커 생성
+                if(markerFlag) {
+                    MarkerOptions ms = new MarkerOptions()
+                            .position(currentPosition)
+                            .title(addMarkerDialog.getTitle())
+                            .snippet(addMarkerDialog.getContents());
+                    ms.setIcon(icon);
+                    map.addMarker(ms);
+
+                }
+
+                addMarkerDialog.clearText();//입력칸에 남아있는 내용 초기화
+                markerFlag = true;//초기화
+            }
+        });
+
+        //마커추가에서 취소 버튼 눌었을때 발생
+        addMarkerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                Toast.makeText(MapActivity.this, "취소되었습니다.", Toast.LENGTH_SHORT).show();
+                markerFlag = false; //취소가 눌렸음을 알려준다.
+            }
+        });
+
         // Mapbox access token only needs to be configured once in your app
         MapboxAccountManager.start(this, getString(R.string.access_token));
 
@@ -128,10 +188,6 @@ public class MapActivity extends AppCompatActivity {
     }
 
     private void updateMap(double latitude, double longitude) {
-        // Build marker
-        map.addMarker(new MarkerOptions()
-                .position(new LatLng(latitude, longitude))
-                .title("Geocoder result"));
 
         // Animate camera to geocoder result location
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -238,6 +294,7 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
+    //팝업메뉴 버튼
     public void onClick_menu(View v){
         PopupMenu popup= new PopupMenu(MapActivity.this, v);
         getMenuInflater().inflate(R.menu.minimenu, popup.getMenu());
@@ -253,13 +310,9 @@ public class MapActivity extends AppCompatActivity {
             switch (item.getItemId()) {
 
                 case R.id.add_mark:
-                    Toast.makeText(MapActivity.this, "마커 추가", Toast.LENGTH_SHORT).show();
+                    AlertDialog.Builder alert = new AlertDialog.Builder(MapActivity.this);
 
-                    map.addMarker(new MarkerOptions()
-                            .position(currentPosition)
-                            .title("test")
-                            .snippet("Made By 컴공 채민균 양민승 송원근"));
-
+                    addMarkerDialog.show();//만들어놓은 dialog나옴
                     break;
 
                 case R.id.logout:
@@ -269,4 +322,42 @@ public class MapActivity extends AppCompatActivity {
             return false;
         }
     };
+
+    //갤러리에서 이미지 가져오기
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        Toast.makeText(getBaseContext(), "resultCode : "+resultCode,Toast.LENGTH_SHORT).show();
+
+        if(requestCode == OPEN_GELLERY) {
+            if (resultCode == Activity.RESULT_OK) {
+                try {
+                    //Uri에서 이미지 이름을 얻어온다.
+                    //String name_Str = getImageNameToUri(data.getData());
+
+                    Bitmap gellery_image;   //불러온 이미지 저장할 변수
+
+                    //이미지 데이터를 비트맵으로 받아온다.
+                    gellery_image = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+
+                    gellery_image = Bitmap.createScaledBitmap(gellery_image,100,100,true);
+                    IconFactory iconFactory = IconFactory.getInstance(MapActivity.this);
+                    icon= iconFactory.fromBitmap(gellery_image);
+
+                    gellery_image = Bitmap.createScaledBitmap(gellery_image,200,200,true);
+
+                    addMarkerDialog.setImageView_img(gellery_image);
+
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

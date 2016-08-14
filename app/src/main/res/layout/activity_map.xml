@@ -29,7 +29,7 @@
     <android.support.design.widget.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end|top"
+        android:layout_gravity="bottom|left"
         android:id="@+id/tabItem"
         android:layout_margin="16dp"
         tools:backgroundTint="#E55E5E"
