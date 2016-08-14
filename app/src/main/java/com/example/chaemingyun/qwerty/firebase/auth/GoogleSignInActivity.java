@@ -210,7 +210,7 @@ public class GoogleSignInActivity extends BaseActivity implements
 //            Log.i("getDisplayName", user.getDisplayName());
 //            Log.i("getEmail", user.getEmail());
 //            Log.i("getProviderId", user.getProviderId());
-//            Log.i("getUid", user.getUid());
+//            Log.i("getUserUid", user.getUserUid());
 
             intent.putExtra("displayName", user.getDisplayName());
             intent.putExtra("email", user.getEmail());
@@ -218,7 +218,7 @@ public class GoogleSignInActivity extends BaseActivity implements
 
             startActivity(intent);
 //            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
-//            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+//            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUserUid()));
 //
 //            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
 //            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);

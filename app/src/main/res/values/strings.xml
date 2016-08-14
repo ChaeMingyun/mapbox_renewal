@@ -5,4 +5,19 @@
     <string name="signed_out">Signed Out</string>
     <string name="firebase_status_fmt">Firebase User: %s</string>
     <string name="google_status_fmt">Google User: %s</string>
+
+
+    <string name="label_link">Link to Uploaded File</string>
+    <string name="label_download">Download File</string>
+    <string name="download">Download</string>
+    <string name="camera_button_text">Upload</string>
+    <string name="take_photo_prompt">Upload a Photo</string>
+    <string name="success">Success</string>
+    <string name="rationale_storage">This sample reads images from your camera to demonstrate uploading.</string>
+
+
+    <string name="sign_in_anonymously">Sign In</string>
+    <string name="sign_in_prompt">Sign In to begin</string>
+    <string name="log_out">Log out</string>
 </resources>
+

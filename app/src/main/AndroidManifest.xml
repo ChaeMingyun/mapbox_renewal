@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 
     <application
         android:allowBackup="true"
@@ -14,22 +16,42 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity
-            android:name=".firebase.auth.GoogleSignInActivity"
-            android:label="google_sign_in">
+        <activity android:name=".firebase.storage.StorageActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!---->
+        <!--<activity-->
+        <!--android:name=".firebase.auth.GoogleSignInActivity"-->
+        <!--android:label="google_sign_in">-->
+        <!--<intent-filter>-->
+        <!--<action android:name="android.intent.action.MAIN" />-->
 
-        <activity android:name=".mapbox.MapActivity">
-        </activity>
+        <!--<category android:name="android.intent.category.LAUNCHER" />-->
+        <!--</intent-filter>-->
+        <!--</activity>-->
+
+        <!--<activity android:name=".mapbox.MapActivity">-->
+        <!--</activity>-->
 
         <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
+        <service
+            android:name=".firebase.storage.MyDownloadService"
+            android:exported="false" />
     </application>
 
+    <provider
+        android:name="android.support.v4.content.FileProvider"
+        android:authorities="com.google.firebase.quickstart.firebasestorage.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+    </provider>
 
 </manifest>
 

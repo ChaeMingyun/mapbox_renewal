@@ -27,7 +27,9 @@ import com.mapbox.services.geocoding.v5.models.CarmenFeature;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
@@ -70,7 +72,6 @@ public class MapActivity extends AppCompatActivity {
             public void onMapReady(MapboxMap mapboxMap) {
                 // Customize map with markers, polylines, etc.
                 map = mapboxMap;
-
                 mapboxMap.addMarker(new MarkerOptions()
                         .position(new LatLng(37.450637, 126.657261))
                         .title("인하대학교 IT공과대학")
@@ -78,10 +79,6 @@ public class MapActivity extends AppCompatActivity {
 
                 final Marker marker = mapboxMap.addMarker(new MarkerViewOptions()
                         .position(new LatLng(37.45, 126.65)));
-
-                marker.getPosition();
-
-
 
                 mapboxMap.setOnMapClickListener(new MapboxMap.OnMapClickListener() {
                     @Override
