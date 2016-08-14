@@ -9,6 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.chaemingyun.qwerty.R;
+import com.example.chaemingyun.qwerty.mapbox.MapActivity;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -205,11 +206,22 @@ public class GoogleSignInActivity extends BaseActivity implements
     private void updateUI(FirebaseUser user) {
         hideProgressDialog();
         if (user != null) {
-            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
-            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+            Intent intent  = new Intent(getApplicationContext(), MapActivity.class);
+//            Log.i("getDisplayName", user.getDisplayName());
+//            Log.i("getEmail", user.getEmail());
+//            Log.i("getProviderId", user.getProviderId());
+//            Log.i("getUid", user.getUid());
 
-            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
+            intent.putExtra("displayName", user.getDisplayName());
+            intent.putExtra("email", user.getEmail());
+            intent.putExtra("uid", user.getUid());
+
+            startActivity(intent);
+//            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
+//            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+//
+//            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+//            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
         } else {
             mStatusTextView.setText(R.string.signed_out);
             mDetailTextView.setText(null);
