@@ -26,6 +26,17 @@
         android:src="@drawable/ic_my_location_24dp"
         tools:backgroundTint="#E55E5E" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:id="@+id/tabItem"
+        android:layout_margin="16dp"
+        tools:backgroundTint="#E55E5E"
+        android:src="@android:drawable/ic_input_add"
+        android:onClick="onClick_menu"
+        />
+
     <com.mapbox.services.android.geocoder.ui.GeocoderAutoCompleteView
         android:id="@+id/query"
         android:singleLine="true"
