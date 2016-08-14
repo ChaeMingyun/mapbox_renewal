@@ -15,7 +15,7 @@ public class MarkerInfo {
     private String markerContents;
     private Image markerImage;
 
-    public MarkerInfo(LatLng markerLatLng, String markerTitle,String markerContents) {
+    public MarkerInfo(LatLng markerLatLng, String markerTitle, String markerContents) {
         this.markerLatLng = markerLatLng;
         this.markerTitle = markerTitle;
         this.markerContents = markerContents;

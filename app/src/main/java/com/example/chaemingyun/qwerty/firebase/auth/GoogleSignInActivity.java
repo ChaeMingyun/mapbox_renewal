@@ -206,7 +206,7 @@ public class GoogleSignInActivity extends BaseActivity implements
     private void updateUI(FirebaseUser user) {
         hideProgressDialog();
         if (user != null) {
-            Intent intent  = new Intent(getApplicationContext(), MapActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MapActivity.class);
 //            Log.i("getDisplayName", user.getDisplayName());
 //            Log.i("getEmail", user.getEmail());
 //            Log.i("getProviderId", user.getProviderId());

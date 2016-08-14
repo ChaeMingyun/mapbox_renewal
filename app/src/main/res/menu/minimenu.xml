@@ -3,11 +3,11 @@
     <item
         android:id="@+id/add_mark"
         android:title="add mark"
-        android:icon="@android:drawable/ic_input_get"/>
+        android:icon="@android:drawable/ic_input_get" />
 
     <item
         android:id="@+id/logout"
         android:title="logout"
-        android:icon="@android:drawable/ic_partial_secure"/>
+        android:icon="@android:drawable/ic_partial_secure" />
 
 </menu>

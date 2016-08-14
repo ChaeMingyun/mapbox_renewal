@@ -1,7 +1,5 @@
 package com.example.chaemingyun.qwerty.firebase.database.model;
 
-import com.mapbox.mapboxsdk.geometry.LatLng;
-
 /**
  * Created by chaemingyun on 2016. 8. 10..
  */
@@ -12,7 +10,6 @@ public class FootPrint {
     private String title;
     private String snippet;
     private String imageUri;
-
 
     public String getFootPrintUid() {
         return footPrintUid;
