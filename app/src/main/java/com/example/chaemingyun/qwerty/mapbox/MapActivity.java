@@ -5,39 +5,17 @@ package com.example.chaemingyun.qwerty.mapbox;
  */
 
 
-import com.example.chaemingyun.qwerty.AddMarkerDialog;
-import com.example.chaemingyun.qwerty.MainActivity;
-import com.example.chaemingyun.qwerty.MarkerInfo;
-import com.example.chaemingyun.qwerty.R;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.MapboxAccountManager;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.location.LocationListener;
-import com.mapbox.mapboxsdk.location.LocationServices;
-
-import com.mapbox.services.android.geocoder.ui.GeocoderAutoCompleteView;
-import com.mapbox.services.commons.models.Position;
-import com.mapbox.services.geocoding.v5.GeocodingCriteria;
-import com.mapbox.services.geocoding.v5.models.CarmenFeature;
-
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
@@ -48,18 +26,31 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.view.MenuItem;
 import android.view.View;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
-import android.os.Bundle;
-import android.animation.TypeEvaluator;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import com.example.chaemingyun.qwerty.AddMarkerDialog;
+import com.example.chaemingyun.qwerty.MarkerInfo;
+import com.example.chaemingyun.qwerty.R;
+import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.location.LocationListener;
+import com.mapbox.mapboxsdk.location.LocationServices;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.services.android.geocoder.ui.GeocoderAutoCompleteView;
+import com.mapbox.services.commons.models.Position;
+import com.mapbox.services.geocoding.v5.GeocodingCriteria;
+import com.mapbox.services.geocoding.v5.models.CarmenFeature;
+
 import java.util.ArrayList;
-import java.util.List;
 
 
 public class MapActivity extends AppCompatActivity {
@@ -83,6 +74,7 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //todo 데이터베이스에서 데이터 불러와야되는 시점
 
         //dialog객체 생성 및 설정
         addMarkerDialog = new AddMarkerDialog(MapActivity.this);
@@ -92,16 +84,18 @@ public class MapActivity extends AppCompatActivity {
         addMarkerDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
-
                 //현재 이동마커의 위치에 입력받은 내용들로 마커 생성
-                if(markerFlag) {
-                    MarkerOptions ms = new MarkerOptions()
-                            .position(currentPosition)
-                            .title(addMarkerDialog.getTitle())
-                            .snippet(addMarkerDialog.getContents());
-                    ms.setIcon(icon);
-                    map.addMarker(ms);
-
+                if (markerFlag) {
+                    //todo storage 에 올라가는 시점
+                    //todo storage 에서 내려받는 시점
+                    //todo 데이터베이스에 저장이 되어야되는 시점
+                    //todo 데이터베이스에서 데이터 불러와야되는 시점
+//                    MarkerOptions ms = new MarkerOptions()
+//                            .position(currentPosition)
+//                            .title(addMarkerDialog.getEditTextTitle())
+//                            .snippet(addMarkerDialog.getEditTextContents());
+//                    ms.setIcon(icon);
+//                    map.addMarker(ms);
                 }
 
                 addMarkerDialog.clearText();//입력칸에 남아있는 내용 초기화
@@ -300,14 +294,14 @@ public class MapActivity extends AppCompatActivity {
     }
 
     //팝업메뉴 버튼
-    public void onClick_menu(View v){
-        PopupMenu popup= new PopupMenu(MapActivity.this, v);
+    public void onClick_menu(View v) {
+        PopupMenu popup = new PopupMenu(MapActivity.this, v);
         getMenuInflater().inflate(R.menu.minimenu, popup.getMenu());
         popup.setOnMenuItemClickListener(listener);
         popup.show();
     }
 
-    PopupMenu.OnMenuItemClickListener listener= new PopupMenu.OnMenuItemClickListener() {
+    PopupMenu.OnMenuItemClickListener listener = new PopupMenu.OnMenuItemClickListener() {
 
         @Override
         public boolean onMenuItemClick(MenuItem item) {
@@ -332,9 +326,9 @@ public class MapActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        Toast.makeText(getBaseContext(), "resultCode : "+resultCode,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getBaseContext(), "resultCode : " + resultCode, Toast.LENGTH_SHORT).show();
 
-        if(requestCode == OPEN_GELLERY) {
+        if (requestCode == OPEN_GELLERY) {
             if (resultCode == Activity.RESULT_OK) {
                 try {
                     //Uri에서 이미지 이름을 얻어온다.
@@ -345,20 +339,13 @@ public class MapActivity extends AppCompatActivity {
                     //이미지 데이터를 비트맵으로 받아온다.
                     gellery_image = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
 
-                    gellery_image = Bitmap.createScaledBitmap(gellery_image,50,50,true);
+                    gellery_image = Bitmap.createScaledBitmap(gellery_image, 50, 50, true);
                     IconFactory iconFactory = IconFactory.getInstance(MapActivity.this);
-                    icon= iconFactory.fromBitmap(gellery_image);
+                    icon = iconFactory.fromBitmap(gellery_image);
 
-                    gellery_image = Bitmap.createScaledBitmap(gellery_image,200,200,true);
+                    gellery_image = Bitmap.createScaledBitmap(gellery_image, 200, 200, true);
 
                     addMarkerDialog.setImageView_img(gellery_image);
-
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

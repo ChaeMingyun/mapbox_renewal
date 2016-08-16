@@ -18,11 +18,10 @@ import android.widget.ImageView;
 
 public class AddMarkerDialog extends Dialog implements View.OnClickListener {
 
-    private EditText title, contents;
+    private EditText editTextTitle, editTextContents;
     private ImageView imageView;
     private Button addOk, addCancel;
-    private String _title, _contents;
-    private Context context;
+    private String title, snippet;
     final int OPEN_GELLERY = 100;
     Activity ac;
 
@@ -37,8 +36,8 @@ public class AddMarkerDialog extends Dialog implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_addmarker);
 
-        title = (EditText) findViewById(R.id.title);
-        contents = (EditText) findViewById(R.id.contents);
+        editTextTitle = (EditText) findViewById(R.id.title);
+        editTextContents = (EditText) findViewById(R.id.contents);
         imageView = (ImageView) findViewById(R.id.gellery_image);
         addOk = (Button) findViewById(R.id.addOK);
         addCancel = (Button) findViewById(R.id.addCancel);
@@ -48,19 +47,19 @@ public class AddMarkerDialog extends Dialog implements View.OnClickListener {
         imageView.setOnClickListener(this);
     }
 
-    public String getTitle() {
-        return _title;
+    public String getEditTextTitle() {
+        return title;
     }
 
-    public String getContents() {
-        return _contents;
+    public String getEditTextContents() {
+        return snippet;
     }
 
     @Override
     public void onClick(View view) {
         if (view == addOk) {
-            _title = title.getText().toString();
-            _contents = contents.getText().toString();
+            title = editTextTitle.getText().toString();
+            snippet = editTextContents.getText().toString();
             dismiss();
         } else if (view == addCancel) {
             cancel();
@@ -79,9 +78,9 @@ public class AddMarkerDialog extends Dialog implements View.OnClickListener {
     //입력창 초기화
     public void clearText() {
         imageView.setImageResource(R.drawable.add_image);
-        contents.setText("");
-        title.setText("");
-        _title = null;
-        _contents = null;
+        editTextContents.setText("");
+        editTextTitle.setText("");
+        title = null;
+        snippet = null;
     }
 }
