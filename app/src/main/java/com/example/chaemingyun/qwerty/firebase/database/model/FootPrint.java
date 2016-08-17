@@ -1,22 +1,26 @@
 package com.example.chaemingyun.qwerty.firebase.database.model;
 
+import com.google.firebase.database.Exclude;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by chaemingyun on 2016. 8. 10..
  */
 public class FootPrint {
-    private String footPrintUid;
     private String latitude;
     private String longitude;
     private String title;
     private String snippet;
-    private String imageUri;
+    private String imageUrl;
 
-    public String getFootPrintUid() {
-        return footPrintUid;
-    }
-
-    public void setFootPrintUid(String footPrintUid) {
-        this.footPrintUid = footPrintUid;
+    public FootPrint(String latitude, String longitude, String title, String snippet, String imageUrl) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.title = title;
+        this.snippet = snippet;
+        this.imageUrl = imageUrl;
     }
 
     public String getLatitude() {
@@ -51,11 +55,23 @@ public class FootPrint {
         this.snippet = snippet;
     }
 
-    public String getImageUri() {
-        return imageUri;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setImageUri(String imageUri) {
-        this.imageUri = imageUri;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
+        result.put("title", title);
+        result.put("snippet", snippet);
+        result.put("imageUrl", imageUrl);
+
+        return result;
     }
 }

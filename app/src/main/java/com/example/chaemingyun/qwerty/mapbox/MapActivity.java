@@ -10,11 +10,13 @@ import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -31,6 +33,21 @@ import android.widget.Toast;
 import com.example.chaemingyun.qwerty.AddMarkerDialog;
 import com.example.chaemingyun.qwerty.MarkerInfo;
 import com.example.chaemingyun.qwerty.R;
+import com.example.chaemingyun.qwerty.firebase.auth.GoogleSignInActivity;
+import com.example.chaemingyun.qwerty.firebase.database.model.FootPrint;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -51,23 +68,39 @@ import com.mapbox.services.geocoding.v5.GeocodingCriteria;
 import com.mapbox.services.geocoding.v5.models.CarmenFeature;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MapActivity extends AppCompatActivity {
+    //firebase Auth
+    private FirebaseAuth mAuth;
+    private GoogleApiClient mGoogleApiClient;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
+    //firebase Storage
+    private StorageReference mStorageRef;
+    private ProgressDialog mProgressDialog;
+    private Uri mDownloadUrl = null;
+
+    //firebase Database
+    private DatabaseReference mDatabase;
+
+    //mapbox
     private MapView mapView;
     private MapboxMap map;
     FloatingActionButton floatingActionButton;
     LocationServices locationServices;
     AddMarkerDialog addMarkerDialog; //dialog 객체
-
     final LatLng FIRST_POSITION = new LatLng(37.45, 126.65);    //초기 이동 마커의 위치
     LatLng currentPosition = FIRST_POSITION;    //현재 마커의 위치
     private static final int PERMISSIONS_LOCATION = 0;
-    private boolean markerFlag = true;  //dialog의 취소가 눌렸는지를 알려준다.
+    private boolean markerFlag = true;  //dialog의  취소가 눌렸는지를 알려준다.
 
+    //gallery
     final int OPEN_GELLERY = 100;   //갤러리 불러올 request 코드
-
     Icon icon;  //마커에 넣을 임시 아이콘
+    Uri uri;
 
     ArrayList<MarkerInfo> markerArrayList;  //마커들을 저장할 리스트
 
@@ -75,6 +108,14 @@ public class MapActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //todo 데이터베이스에서 데이터 불러와야되는 시점
+
+        //====== 1.add marker 관련 ======//
+        Intent intent = new Intent(this.getIntent());
+        final String userUid = intent.getStringExtra("uid");
+
+        // [START initialize_database_ref]
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        // [END initialize_database_ref]
 
         //dialog객체 생성 및 설정
         addMarkerDialog = new AddMarkerDialog(MapActivity.this);
@@ -87,23 +128,43 @@ public class MapActivity extends AppCompatActivity {
                 //현재 이동마커의 위치에 입력받은 내용들로 마커 생성
                 if (markerFlag) {
                     //todo storage 에 올라가는 시점
-                    //todo storage 에서 내려받는 시점
-                    //todo 데이터베이스에 저장이 되어야되는 시점
-                    //todo 데이터베이스에서 데이터 불러와야되는 시점
+                    uploadFromUri(uri, userUid);
+                    if (mDownloadUrl == null) {
+                        Toast.makeText(MapActivity.this, "Error: image upload failed",
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        //todo 데이터베이스에 저장이 되어야되는 시점
+                        String key = mDatabase.child(userUid).push().getKey();
+
+                        String currentLatLng = currentPosition.toString();
+                        String[] split = currentLatLng.split(",");
+                        String latitude = split[0];
+                        String longitude = split[1];
+                        String title = addMarkerDialog.getEditTextTitle();
+                        String snippet = addMarkerDialog.getEditTextContents();
+                        String url = mDownloadUrl.toString();
+                        FootPrint footPrint = new FootPrint(latitude, longitude, title, snippet, url);
+
+                        Map<String, Object> postValues = footPrint.toMap();
+                        Map<String, Object> childUpdates = new HashMap<>();
+                        childUpdates.put(userUid + key, postValues);
+                        mDatabase.updateChildren(childUpdates);
+
+                        //todo 데이터베이스에서 데이터 불러와야되는 시점
 //                    MarkerOptions ms = new MarkerOptions()
 //                            .position(currentPosition)
 //                            .title(addMarkerDialog.getEditTextTitle())
 //                            .snippet(addMarkerDialog.getEditTextContents());
 //                    ms.setIcon(icon);
 //                    map.addMarker(ms);
+                    }
                 }
-
                 addMarkerDialog.clearText();//입력칸에 남아있는 내용 초기화
                 markerFlag = true;//초기화
             }
         });
 
-        //마커추가에서 취소 버튼 눌었을때 발생
+        //마커추가에서 취소 버튼 눌렀을때 발생
         addMarkerDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {
@@ -112,6 +173,8 @@ public class MapActivity extends AppCompatActivity {
             }
         });
 
+
+        //====== 2.mapbox 관련 ======//
         // Mapbox access token only needs to be configured once in your app
         MapboxAccountManager.start(this, getString(R.string.access_token));
 
@@ -165,7 +228,6 @@ public class MapActivity extends AppCompatActivity {
         });
 
         // Set up autocomplete widget
-
         GeocoderAutoCompleteView autocomplete = (GeocoderAutoCompleteView) findViewById(R.id.query);
         autocomplete.setAccessToken("pk.eyJ1IjoiY29hbHNyYnM3IiwiYSI6ImNpcmc1NTR2NTAwMWtnMW5yZWg0c3ZuM24ifQ.LZeDizCkf7HQvGwoQVIbxw");
         autocomplete.setType(GeocodingCriteria.TYPE_POI);
@@ -180,7 +242,85 @@ public class MapActivity extends AppCompatActivity {
 //
 //            }
         });
+
+
+        //====== 3.logout 관련 ======//
+        mAuth = FirebaseAuth.getInstance();
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+            }
+        };
+
+        mAuth.addAuthStateListener(mAuthListener);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, null)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
     }
+
+    // [START upload_from_uri]
+    private void uploadFromUri(Uri fileUri, String userUid) {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+
+        // [START get_child_ref]
+        // Get a reference to store file at photos/<FILENAME>.jpg
+        final StorageReference photoRef = mStorageRef.child(userUid)
+                .child(fileUri.getLastPathSegment());
+        // [END get_child_ref]
+
+        // Upload file to Firebase Storage
+        // [START_EXCLUDE]
+        showProgressDialog();
+        // [END_EXCLUDE]
+        photoRef.putFile(fileUri)
+                .addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // Get the public download URL
+                        //todo storage 에서 내려받는 시점
+                        mDownloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
+                        // [START_EXCLUDE]
+                        hideProgressDialog();
+                        // [END_EXCLUDE]
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        mDownloadUrl = null;
+                        // [START_EXCLUDE]
+                        hideProgressDialog();
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+    // [END upload_from_uri]
+
+    private void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage("Loading...");
+            mProgressDialog.setIndeterminate(true);
+        }
+        mProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
+    }
+
 
     private void updateMap(double latitude, double longitude) {
         // Build marker
@@ -302,7 +442,6 @@ public class MapActivity extends AppCompatActivity {
     }
 
     PopupMenu.OnMenuItemClickListener listener = new PopupMenu.OnMenuItemClickListener() {
-
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             // TODO Auto-generated method stub
@@ -311,11 +450,23 @@ public class MapActivity extends AppCompatActivity {
                 case R.id.add_mark:
                     AlertDialog.Builder alert = new AlertDialog.Builder(MapActivity.this);
 
-                    addMarkerDialog.show();//만들어놓은 dialog나옴
+                    addMarkerDialog.show();//만들어놓은 dialog 나옴
                     break;
 
                 case R.id.logout:
-                    Toast.makeText(MapActivity.this, "로그아웃", Toast.LENGTH_SHORT).show();
+                    // Firebase sign out
+                    GoogleSignInActivity googleSignInActivity = new GoogleSignInActivity();
+                    mAuth.signOut();
+
+                    // Google sign out
+                    Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                            new ResultCallback<Status>() {
+                                @Override
+                                public void onResult(@NonNull Status status) {
+                                    Intent intent = new Intent(getApplicationContext(), GoogleSignInActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
                     break;
             }
             return false;
@@ -332,20 +483,22 @@ public class MapActivity extends AppCompatActivity {
             if (resultCode == Activity.RESULT_OK) {
                 try {
                     //Uri에서 이미지 이름을 얻어온다.
-                    //String name_Str = getImageNameToUri(data.getData());
+                    uri = data.getData();
 
-                    Bitmap gellery_image;   //불러온 이미지 저장할 변수
+                    Bitmap galleryImage;   //불러온 이미지 저장할 변수
 
                     //이미지 데이터를 비트맵으로 받아온다.
-                    gellery_image = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                    galleryImage = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
 
-                    gellery_image = Bitmap.createScaledBitmap(gellery_image, 50, 50, true);
+                    data.getData();
+
+                    galleryImage = Bitmap.createScaledBitmap(galleryImage, 50, 50, true);
                     IconFactory iconFactory = IconFactory.getInstance(MapActivity.this);
-                    icon = iconFactory.fromBitmap(gellery_image);
+                    icon = iconFactory.fromBitmap(galleryImage);
 
-                    gellery_image = Bitmap.createScaledBitmap(gellery_image, 200, 200, true);
+                    galleryImage = Bitmap.createScaledBitmap(galleryImage, 200, 200, true);
 
-                    addMarkerDialog.setImageView_img(gellery_image);
+                    addMarkerDialog.setImageViewImage(galleryImage);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

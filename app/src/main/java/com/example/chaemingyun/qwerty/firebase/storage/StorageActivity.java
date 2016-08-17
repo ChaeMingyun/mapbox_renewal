@@ -174,23 +174,8 @@ public class StorageActivity extends AppCompatActivity implements
                 .addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // Upload succeeded
-                        Log.d(TAG, "uploadFromUri:onSuccess");
-
                         // Get the public download URL
                         mDownloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
-                        //todo uri 로 부터 bitmap 추출해서 marker 에 담을 Icon 으로 만든뒤 marker icon 에 추가하기
-                        // Create an Icon object for the marker to use
-                        IconFactory iconFactory = IconFactory.getInstance(StorageActivity.this);
-                        try {
-                            InputStream inputStream = getContentResolver().openInputStream(mDownloadUrl);
-                            Drawable iconDrawable = Drawable.createFromStream(inputStream, mDownloadUrl.toString());
-                            Icon icon = iconFactory.fromDrawable(iconDrawable);
-                            //todo 이렇게 한 다음에 marker.setIcon(icon) 이렇게 해주면 됨 ㅇㅇ
-
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
                         // [START_EXCLUDE]
                         hideProgressDialog();
                         updateUI(mAuth.getCurrentUser());
@@ -200,11 +185,7 @@ public class StorageActivity extends AppCompatActivity implements
                 .addOnFailureListener(this, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
-                        // Upload failed
-                        Log.w(TAG, "uploadFromUri:onFailure", exception);
-
                         mDownloadUrl = null;
-
                         // [START_EXCLUDE]
                         hideProgressDialog();
                         Toast.makeText(StorageActivity.this, "Error: upload failed",

@@ -71,7 +71,7 @@ public class AddMarkerDialog extends Dialog implements View.OnClickListener {
         }
     }
 
-    public void setImageView_img(Bitmap bm) {
+    public void setImageViewImage(Bitmap bm) {
         imageView.setImageBitmap(bm);
     }
 

@@ -16,29 +16,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar">
 
-        <activity android:name=".firebase.storage.StorageActivity">
+        <!--<activity android:name=".firebase.storage.StorageActivity">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
+        <activity
+            android:name=".firebase.auth.GoogleSignInActivity"
+            android:label="google_sign_in">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".firebase.auth.GoogleSignInActivity"
-            android:label="google_sign_in"></activity>
-        <!---->
-        <!--<activity-->
-        <!--android:name=".firebase.auth.GoogleSignInActivity"-->
-        <!--android:label="google_sign_in">-->
-        <!--<intent-filter>-->
-        <!--<action android:name="android.intent.action.MAIN" />-->
 
-        <!--<category android:name="android.intent.category.LAUNCHER" />-->
-        <!--</intent-filter>-->
-        <!--</activity>-->
-
-        <!--<activity android:name=".mapbox.MapActivity">-->
-        <!--</activity>-->
+        <activity android:name=".mapbox.MapActivity">
+        </activity>
 
         <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
         <service
