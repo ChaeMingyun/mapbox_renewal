@@ -15,14 +15,6 @@ public class FootPrint {
     private String snippet;
     private String imageUrl;
 
-    public FootPrint(String latitude, String longitude, String title, String snippet, String imageUrl) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.title = title;
-        this.snippet = snippet;
-        this.imageUrl = imageUrl;
-    }
-
     public String getLatitude() {
         return latitude;
     }

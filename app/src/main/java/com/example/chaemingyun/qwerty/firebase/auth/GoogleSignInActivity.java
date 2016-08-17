@@ -203,6 +203,7 @@ public class GoogleSignInActivity extends BaseActivity implements
             intent.putExtra("uid", user.getUid());
 
             startActivity(intent);
+            finish();
         } else {
             findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
         }

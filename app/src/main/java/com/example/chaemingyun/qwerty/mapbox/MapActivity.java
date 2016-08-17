@@ -10,7 +10,6 @@ import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,7 +22,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.view.MenuItem;
@@ -40,12 +38,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnPausedListener;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.mapbox.mapboxsdk.MapboxAccountManager;
@@ -67,6 +66,10 @@ import com.mapbox.services.commons.models.Position;
 import com.mapbox.services.geocoding.v5.GeocodingCriteria;
 import com.mapbox.services.geocoding.v5.models.CarmenFeature;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,9 +82,10 @@ public class MapActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     //firebase Storage
-    private StorageReference mStorageRef;
-    private ProgressDialog mProgressDialog;
-    private Uri mDownloadUrl = null;
+    FirebaseStorage storage = FirebaseStorage.getInstance();
+    private StorageReference mStorageRef = storage.getReferenceFromUrl("gs://qwerty-7992b.appspot.com");
+    private Uri mDownloadUrl;
+    private static final String KEY_DOWNLOAD_URL = "key_download_url";
 
     //firebase Database
     private DatabaseReference mDatabase;
@@ -108,8 +112,11 @@ public class MapActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //todo 데이터베이스에서 데이터 불러와야되는 시점
-
         //====== 1.add marker 관련 ======//
+        if (savedInstanceState != null) {
+            mDownloadUrl = savedInstanceState.getParcelable(KEY_DOWNLOAD_URL);
+        }
+
         Intent intent = new Intent(this.getIntent());
         final String userUid = intent.getStringExtra("uid");
 
@@ -128,36 +135,41 @@ public class MapActivity extends AppCompatActivity {
                 //현재 이동마커의 위치에 입력받은 내용들로 마커 생성
                 if (markerFlag) {
                     //todo storage 에 올라가는 시점
-                    uploadFromUri(uri, userUid);
-                    if (mDownloadUrl == null) {
-                        Toast.makeText(MapActivity.this, "Error: image upload failed",
-                                Toast.LENGTH_SHORT).show();
-                    } else {
-                        //todo 데이터베이스에 저장이 되어야되는 시점
-                        String key = mDatabase.child(userUid).push().getKey();
+                    FootPrint footPrint = new FootPrint();
+                    try {
+                        uploadFromUri(uri, userUid);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    //todo 데이터베이스에 저장이 되어야되는 시점
+                    String key = mDatabase.child(userUid).push().getKey();
 
-                        String currentLatLng = currentPosition.toString();
-                        String[] split = currentLatLng.split(",");
-                        String latitude = split[0];
-                        String longitude = split[1];
-                        String title = addMarkerDialog.getEditTextTitle();
-                        String snippet = addMarkerDialog.getEditTextContents();
-                        String url = mDownloadUrl.toString();
-                        FootPrint footPrint = new FootPrint(latitude, longitude, title, snippet, url);
+                    String currentLatLng = currentPosition.toString();
+                    String[] split = currentLatLng.split(",");
+                    String latitude = split[0].substring(17);
+                    String longitude = split[1].substring(11);
+                    String title = addMarkerDialog.getEditTextTitle();
+                    String snippet = addMarkerDialog.getEditTextContents();
+                    String imageUrl = mDownloadUrl.toString();
 
-                        Map<String, Object> postValues = footPrint.toMap();
-                        Map<String, Object> childUpdates = new HashMap<>();
-                        childUpdates.put(userUid + key, postValues);
-                        mDatabase.updateChildren(childUpdates);
+                    footPrint.setLatitude(latitude);
+                    footPrint.setLongitude(longitude);
+                    footPrint.setTitle(title);
+                    footPrint.setSnippet(snippet);
+                    footPrint.setImageUrl(imageUrl);
 
-                        //todo 데이터베이스에서 데이터 불러와야되는 시점
+                    Map<String, Object> postValues = footPrint.toMap();
+                    Map<String, Object> childUpdates = new HashMap<>();
+                    childUpdates.put(userUid + key, postValues);
+                    mDatabase.updateChildren(childUpdates);
+
+                    //todo 데이터베이스에서 데이터 불러와야되는 시점
 //                    MarkerOptions ms = new MarkerOptions()
 //                            .position(currentPosition)
 //                            .title(addMarkerDialog.getEditTextTitle())
 //                            .snippet(addMarkerDialog.getEditTextContents());
 //                    ms.setIcon(icon);
 //                    map.addMarker(ms);
-                    }
                 }
                 addMarkerDialog.clearText();//입력칸에 남아있는 내용 초기화
                 markerFlag = true;//초기화
@@ -250,7 +262,6 @@ public class MapActivity extends AppCompatActivity {
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
             }
         };
 
@@ -269,58 +280,35 @@ public class MapActivity extends AppCompatActivity {
     }
 
     // [START upload_from_uri]
-    private void uploadFromUri(Uri fileUri, String userUid) {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-
+    private void uploadFromUri(Uri fileUri, String userUid) throws FileNotFoundException {
         // [START get_child_ref]
         // Get a reference to store file at photos/<FILENAME>.jpg
-        final StorageReference photoRef = mStorageRef.child(userUid)
-                .child(fileUri.getLastPathSegment());
-        // [END get_child_ref]
 
+        StorageReference photoRef = mStorageRef.child(userUid).child(fileUri.getLastPathSegment());
+        // [END get_child_ref]
         // Upload file to Firebase Storage
-        // [START_EXCLUDE]
-        showProgressDialog();
-        // [END_EXCLUDE]
-        photoRef.putFile(fileUri)
-                .addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // Get the public download URL
-                        //todo storage 에서 내려받는 시점
-                        mDownloadUrl = taskSnapshot.getMetadata().getDownloadUrl();
-                        // [START_EXCLUDE]
-                        hideProgressDialog();
-                        // [END_EXCLUDE]
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        mDownloadUrl = null;
-                        // [START_EXCLUDE]
-                        hideProgressDialog();
-                        // [END_EXCLUDE]
-                    }
-                });
+//        UploadTask uploadTask = photoRef.putFile(fileUri);
+        InputStream inputStream = new FileInputStream(new File(fileUri.getPath()));
+        UploadTask uploadTask = photoRef.putStream(inputStream);
+        uploadTask.addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                System.out.println("Upload is " + progress + "% done");
+            }
+        }).addOnPausedListener(new OnPausedListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onPaused(UploadTask.TaskSnapshot taskSnapshot) {
+                System.out.println("Upload is paused");
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                mDownloadUrl = taskSnapshot.getDownloadUrl();
+            }
+        });
     }
     // [END upload_from_uri]
-
-    private void showProgressDialog() {
-        if (mProgressDialog == null) {
-            mProgressDialog = new ProgressDialog(this);
-            mProgressDialog.setMessage("Loading...");
-            mProgressDialog.setIndeterminate(true);
-        }
-        mProgressDialog.show();
-    }
-
-    private void hideProgressDialog() {
-        if (mProgressDialog != null && mProgressDialog.isShowing()) {
-            mProgressDialog.dismiss();
-        }
-    }
-
 
     private void updateMap(double latitude, double longitude) {
         // Build marker
@@ -416,6 +404,7 @@ public class MapActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
+        outState.putParcelable(KEY_DOWNLOAD_URL, mDownloadUrl);
     }
 
     private static class LatLngEvaluator implements TypeEvaluator<LatLng> {
@@ -448,14 +437,11 @@ public class MapActivity extends AppCompatActivity {
             switch (item.getItemId()) {
 
                 case R.id.add_mark:
-                    AlertDialog.Builder alert = new AlertDialog.Builder(MapActivity.this);
-
                     addMarkerDialog.show();//만들어놓은 dialog 나옴
                     break;
 
                 case R.id.logout:
                     // Firebase sign out
-                    GoogleSignInActivity googleSignInActivity = new GoogleSignInActivity();
                     mAuth.signOut();
 
                     // Google sign out
@@ -465,6 +451,7 @@ public class MapActivity extends AppCompatActivity {
                                 public void onResult(@NonNull Status status) {
                                     Intent intent = new Intent(getApplicationContext(), GoogleSignInActivity.class);
                                     startActivity(intent);
+                                    finish();
                                 }
                             });
                     break;
