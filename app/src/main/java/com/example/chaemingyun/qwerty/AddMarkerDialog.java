@@ -22,15 +22,13 @@ public class AddMarkerDialog extends Dialog implements View.OnClickListener {
     private ImageView imageView;
     private Button addOk, addCancel;
     private String title, snippet;
-    final int OPEN_GELLERY = 100;
+    final int OPEN_GALLERY = 100;
     Activity ac;
 
     public AddMarkerDialog(Context context) {
         super(context);
         ac = (Activity) context;
     }
-
-    ;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +65,7 @@ public class AddMarkerDialog extends Dialog implements View.OnClickListener {
             //갤러리 불러오기
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
-            ac.startActivityForResult(intent, OPEN_GELLERY);
+            ac.startActivityForResult(intent, OPEN_GALLERY);
         }
     }
 
